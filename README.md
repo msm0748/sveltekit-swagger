@@ -1,38 +1,95 @@
-# create-svelte
+# 스벨트킷에서 스웨거 사용법
 
-Everything you need to build a Svelte project, powered by [`create-svelte`](https://github.com/sveltejs/kit/tree/main/packages/create-svelte).
-
-## Creating a project
-
-If you're seeing this, you've probably already done this step. Congrats!
+## 스웨거 설치
 
 ```bash
-# create a new project in the current directory
-npm create svelte@latest
-
-# create a new project in my-app
-npm create svelte@latest my-app
+npm i swagger-jsdoc swagger-ui-dist
+npm i -D @types/swagger-jsdoc @types/swagger-ui-dist
 ```
 
-## Developing
+## 설정
 
-Once you've created a project and installed dependencies with `npm install` (or `pnpm install` or `yarn`), start a development server:
+> vite.config.ts
 
-```bash
-npm run dev
+```ts
+import { sveltekit } from '@sveltejs/kit/vite';
+import { defineConfig } from 'vite';
 
-# or start the server and open the app in a new browser tab
-npm run dev -- --open
+export default defineConfig({
+	plugins: [sveltekit()],
+	optimizeDeps: {
+		include: ['swagger-ui-dist/swagger-ui-bundle.js']
+	},
+	ssr: {
+		noExternal: ['swagger-ui-dist']
+	},
+	resolve: {
+		alias: {
+			'swagger-ui-dist': 'swagger-ui-dist'
+		}
+	}
+});
 ```
 
-## Building
+> lib/swagger.ts
 
-To create a production version of your app:
+```ts
+import swaggerJsdoc from 'swagger-jsdoc';
 
-```bash
-npm run build
+const options = {
+	definition: {
+		openapi: '3.0.0',
+		info: {
+			title: 'SvelteKit API',
+			version: '1.0.0',
+			description: 'API documentation for SvelteKit project'
+		}
+	},
+	apis: ['./src/routes/api/**/*.ts'] // API 라우트 파일 위치
+};
+
+export const swaggerSpec = swaggerJsdoc(options);
 ```
 
-You can preview the production build with `npm run preview`.
+> routes/api/swagger.json/+server.ts
 
-> To deploy your app, you may need to install an [adapter](https://kit.svelte.dev/docs/adapters) for your target environment.
+```ts
+import { json } from '@sveltejs/kit';
+import type { RequestHandler } from './$types';
+import { swaggerSpec } from '$lib/swagger';
+
+export const GET: RequestHandler = async () => {
+	return json(swaggerSpec);
+};
+```
+
+> routes/api-docs
+
+```svelte
+<script lang="ts">
+	import { onMount } from 'svelte';
+	import { browser } from '$app/environment';
+
+	let SwaggerUI: any;
+
+	onMount(async () => {
+		if (browser) {
+			const swaggerModule = await import('swagger-ui-dist/swagger-ui-bundle.js');
+			SwaggerUI = swaggerModule.default;
+
+			SwaggerUI({
+				url: '/api/swagger.json',
+				dom_id: '#swagger-ui'
+			});
+		}
+	});
+</script>
+
+<svelte:head>
+	{#if browser}
+		<link rel="stylesheet" href="/node_modules/swagger-ui-dist/swagger-ui.css" />
+	{/if}
+</svelte:head>
+
+<div id="swagger-ui"></div>
+```
