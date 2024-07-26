@@ -63,7 +63,7 @@ export const GET: RequestHandler = async () => {
 };
 ```
 
-> routes/api-docs
+> routes/api-docs/+page.svelte
 
 ```svelte
 <script lang="ts">
