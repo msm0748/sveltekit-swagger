@@ -6,6 +6,8 @@ import type { RequestHandler } from './$types';
  * /api/users:
  *   get:
  *     summary: Get users
+ *     tags:
+ *       - users
  *     parameters:
  *       - in: query
  *         name: limit
@@ -31,6 +33,8 @@ export const GET: RequestHandler = async ({ url }) => {
  * /api/users:
  *   post:
  *     summary: Create a new user
+ *     tags:
+ *       - users
  *     requestBody:
  *       required: true
  *       content:

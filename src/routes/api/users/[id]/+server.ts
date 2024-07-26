@@ -3,9 +3,14 @@ import type { RequestHandler } from './$types';
 
 /**
  * @swagger
+ * tags:
+ *   - name: users
+ *     description:
  * /api/users/{id}:
  *   get:
  *     summary: Get a user by ID
+ *     tags:
+ *       - users
  *     parameters:
  *       - in: path
  *         name: id
